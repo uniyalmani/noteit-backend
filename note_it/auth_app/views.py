@@ -14,19 +14,39 @@ class SignUpView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            print(request.data)
             serializer = CustomUserSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
                 refresh = RefreshToken.for_user(user)
                 access_token = refresh.access_token
-                return success_response(data ={
+                return success_response({
                     'refresh': str(refresh),
                     'access': str(access_token),
-                }, message="account creation successful", status_code=status.HTTP_201_CREATED)
-            return error_response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+                }, message="Account creation successful", status_code=status.HTTP_201_CREATED)
+            else:
+                # Check for unique constraints and provide appropriate error messages
+                email_errors = serializer.errors.get('email', [])
+                name_errors = serializer.errors.get('name', [])
+                errors = {}
+                fileds = ""
+                if email_errors:
+                    errors['email'] = 'A user with this email already exists.'
+                    fileds += " email, "
+                if   name_errors:
+                    errors['name'] = 'A user with this name already exists.'
+                    fileds += " name "
+                
+                message = 'A user with' + fileds + "already exists."
+                if errors:
+                    return error_response(errors=errors, message=message, status_code=status.HTTP_400_BAD_REQUEST)
+                else:
+                    # Return generic error message for other validation errors
+                    return error_response(errors=serializer.errors, message="validation error check formate of email and other fields", status_code=status.HTTP_400_BAD_REQUEST)
+               
         except Exception as e:
-            return error_response(message=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Log the exception for debugging
+            print(e)
+            return error_response(message="Internal server error", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -50,11 +70,13 @@ class LoginView(APIView):
                         'access': str(access_token),
                     }, message='Login successful', status_code=status.HTTP_200_OK)
                 else:
-                    return error_response({'error': 'Invalid credentials'}, status.HTTP_401_UNAUTHORIZED)
+                    return error_response({'error': 'Invalid credentials'}, message="Invalid email or password. Please check your credentials.", status_code=status.HTTP_401_UNAUTHORIZED)
+        except serializers.ValidationError as e:
+            # Handle validation errors from serializer
+            return error_response(errors=e.detail, message="Validation error", status_code=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return error_response(errors=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    
+            # Handle other exceptions
+            return error_response(errors=str(e), message="Internal server error", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 class RefreshTokenView(APIView):
 

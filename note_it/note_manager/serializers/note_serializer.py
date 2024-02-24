@@ -9,7 +9,7 @@ class NoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Note
-        fields = ('id', 'title', 'content', 'created_at', 'updated_at')
+        fields = ('id', 'title', 'content', 'is_pinned','created_at', 'updated_at')
 
     def get_content(self, obj):
         try:
