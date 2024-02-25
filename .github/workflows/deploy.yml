@@ -12,17 +12,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Change permissions of manage.py
-        run: chmod +r note_it/manage.py
-
       - name: Deploy to Server (excluding db.sqlite3)
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_PRIVATE_KEY }} 
-          source: "Dockerfile, requirements.txt, .env.production, docker-compose.yml, note_it" # Removed 'db.sqlite3'
-          target: "/home/ubuntu/django_project"
+        run: sudo scp -r -i ${{ secrets.SERVER_PRIVATE_KEY }} -o StrictHostKeyChecking=no Dockerfile requirements.txt .env.production docker-compose.yml note_it ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_IP }}:/home/ubuntu/django_project
 
       - name: Run Commands on Server
         uses: appleboy/ssh-action@master
@@ -31,8 +22,8 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/django_project
             sudo chown -R ubuntu:ubuntu /home/ubuntu/django_project # Change ownership (if needed)
+            cd /home/ubuntu/django_project
             echo "DEBUG=${{ secrets.DEBUG }}" > .env 
             echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
             echo "ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}" >> .env
