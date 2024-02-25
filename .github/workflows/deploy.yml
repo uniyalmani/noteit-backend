@@ -2,7 +2,7 @@ name: Django Deployment
 
 on:
   push:
-    branches: [ main ] 
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
@@ -15,13 +15,23 @@ jobs:
       - name: Change permissions of note_it directory
         run: chmod -R +r note_it
 
-      - name: Deploy to Server (excluding db.sqlite3)
+      - name: Ensure Project Directory Exists on Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_PRIVATE_KEY }}
+          script: |
+            sudo mkdir -p /home/ubuntu/django_project  # Create if doesn't exist
+            sudo chown -R your_actual_user:your_actual_group /home/ubuntu/django_project 
+
+      - name: Deploy to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_PRIVATE_KEY }} 
-          source: "Dockerfile, requirements.txt, .env.production, docker-compose.yml, note_it" # Removed 'db.sqlite3'
+          key: ${{ secrets.SERVER_PRIVATE_KEY }}
+          source: "Dockerfile, requirements.txt, .env.production, docker-compose.yml, note_it"
           target: "/home/ubuntu/django_project" 
 
       - name: Run Commands on Server
