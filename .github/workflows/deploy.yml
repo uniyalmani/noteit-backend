@@ -12,6 +12,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Change permissions of manage.py
+        run: chmod +r note_it/manage.py
+
       - name: Deploy to Server
         uses: appleboy/scp-action@master
         with:
