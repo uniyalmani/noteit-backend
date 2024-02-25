@@ -9,18 +9,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Deploy to server
+      - name: Deploy to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }} 
-          source: "Dockerfile, requirements.txt, .env.production, docker-compose.yml" 
+          source: "Dockerfile, requirements.txt, .env.production, docker-compose.yml, note_it" 
           target: "/home/ubuntu/django_project" 
 
-      - name: Run commands on server
+      - name: Run Commands on Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -28,13 +29,14 @@ jobs:
           key: ${{ secrets.SERVER_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/django_project
-            echo DEBUG=${{ secrets.DEBUG }} >> .env
-            echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-            echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
-            echo DB_NAME=${{ secrets.DB_NAME }} >> .env
-            echo DB_USER=${{ secrets.DB_USER }} >> .env
-            echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
-            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+            echo "DEBUG=${{ secrets.DEBUG }}" > .env
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+            echo "ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            sudo docker-compose down
             sudo docker-compose pull 
-            sudo docker-compose up -d 
+            sudo docker-compose up -d
