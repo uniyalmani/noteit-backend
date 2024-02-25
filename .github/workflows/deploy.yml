@@ -22,7 +22,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_PRIVATE_KEY }} 
           source: "Dockerfile, requirements.txt, .env.production, docker-compose.yml, note_it" # Removed 'db.sqlite3'
-          target: "/home/ubuntu/django_project" 
+          target: "/home/ubuntu/django_project"
 
       - name: Run Commands on Server
         uses: appleboy/ssh-action@master
