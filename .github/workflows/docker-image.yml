@@ -19,6 +19,6 @@ jobs:
       run: docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASSWORD
       
     - name: Build the Docker image
-      run: docker build -t ashutosh211/noteit
+      run: docker build -t ashutosh211/noteit .
     - name: Push to Dockerhub
       run: docker push ashutosh211/noteit:latest
