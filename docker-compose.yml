@@ -9,11 +9,9 @@ services:
       context: .
       dockerfile: Dockerfile
  
-    environment:
-      - SECRET_KEY1="qwertyuiopasdfghjklzxcvbnmgenratedfjsdfjs"
 
     volumes:
       - .:/usr/src/app
 
     ports:  
-      - "8000:80"
+      - "8080:8080"
