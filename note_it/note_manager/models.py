@@ -14,6 +14,7 @@ class Note(models.Model):
     is_deleted = models.BooleanField(default=False) 
     is_pinned = models.BooleanField(default=False) 
     pinned_at = models.DateTimeField(blank=True, null=True)
+    public_link = models.CharField(max_length=100, unique=True, blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     
     
