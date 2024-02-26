@@ -140,3 +140,14 @@ Notes
 Provide a valid refresh_token for refreshing the access token.
 The refresh_token is obtained during the login process.
 Ensure that the provided refresh token is valid for a successful refresh.
+
+
+
+#Note API
+
+## Create Update Note Token API
+
+### Endpoint
+
+`POST /api/notes/createnote/`
+
