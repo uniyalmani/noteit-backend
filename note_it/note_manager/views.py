@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.db.models import F, Case, When, Value, BooleanField
 from rest_framework.exceptions import NotFound, ValidationError
 from django.core.exceptions import ObjectDoesNotExist
+from uuid import uuid4
 import json
 
 
@@ -77,7 +78,7 @@ class CustomPagination(PageNumberPagination):
             'results': data
         }
         
-        return success_response(message="data successfully reviewed", data=response_data, status_code=status.HTTP_200_OK)
+        return success_response(message="data successfully retrieved", data=response_data, status_code=status.HTTP_200_OK)
     
 
 class NoteListView(APIView):
@@ -161,3 +162,47 @@ class ToggleNotePinStatus(APIView):
             return error_response(message=str(e), status_code=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return error_response(message=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+        
+
+
+
+class GenerateAndAccessSharedNoteAPIView(APIView):
+    serializer_class = NoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, noteid):
+        try:
+            note = Note.objects.get(id=noteid, owner=request.user)
+        except Note.DoesNotExist:
+            return error_response(message="Note does not exist", status_code=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return error_response(message=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        try:
+            if note.public_link:
+                return success_response(data={'note': self.serializer_class(note).data, 'public_link': note.public_link})
+
+            public_link = str(uuid4())
+            note.public_link = public_link
+            note.save()
+
+            return success_response(data={'note': self.serializer_class(note).data, 'public_link': public_link})
+        except Exception as e:
+            return error_response(message=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+class GetNoteByPublicIDAPIView(APIView):
+    serializer_class = NoteSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, public_id):
+        try:
+            note = get_object_or_404(Note, public_link=public_id)
+            serializer = self.serializer_class(note)  # Instantiate the serializer
+            # print(serializer.data, "///////")
+            return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
